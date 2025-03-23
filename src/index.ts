@@ -1,14 +1,15 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, Router } from "express";
 import { UserController } from "./controllers/UserController";
+import { UserService } from "./services/UserServices";
+import { router } from "./routes";
 
-const userController = new UserController();
+const userService = new UserService();
+const userController = new UserController(userService);
 
 const server = express();
 server.use(express.json());
+server.use(router)
 
-server.get("/user",userController.getUsers);
-
-server.post("/user", userController.createUser);
 
 server.listen(5000, () => {
   console.log("Servidor iniciado na porta 5000");
