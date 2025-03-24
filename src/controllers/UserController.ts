@@ -1,13 +1,14 @@
 import { Request,Response } from "express";
-import { UserService,db } from "../services/UserServices";
+import { UserService} from "../services/UserServices";
 
 export class UserController {
   userService:UserService
 
-  constructor(userService:UserService){
+  constructor(userService = new UserService){
     this.userService = userService
   }
 
+  
   public createUser = (request: Request, response: Response) => {
     const user = request.body;
 

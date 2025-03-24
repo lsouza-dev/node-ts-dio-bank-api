@@ -3,8 +3,6 @@ import { UserController } from "./controllers/UserController";
 import { UserService } from "./services/UserServices";
 import { router } from "./routes";
 
-const userService = new UserService();
-const userController = new UserController(userService);
 
 const server = express();
 server.use(express.json());

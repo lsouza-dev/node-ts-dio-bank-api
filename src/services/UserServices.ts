@@ -1,33 +1,48 @@
 export interface IUser {
-  nome: string;
+  name: string;
   email: string;
   password:string;
 }
 
-export const db: IUser[] = [
+const db = [
   {
-    "nome":"Luiz",
-    "email":"lsouza@gmail.com",
-    "password":"senha123"
+    "name":"lsouza",
+    "email":"lsouza.dev@gmail.com",
+    "password":"lsouza123"
+  },
+  {
+    "name":"helena",
+    "email":"helena.dev@gmail.com",
+    "password":"helena123"
+  },
+  {
+    "name":"mary",
+    "email":"mary.dev@gmail.com",
+    "password":"mary123"
   }
-];
+]
 
 export class UserService {
-  public createUser = (nome: string, email: string,password:string):IUser => {
+  db: IUser[]
+
+  constructor(database = db) {
+    this.db = database;
+  }
+  public createUser = (name: string, email: string,password:string):IUser => {
     const user:IUser = {
-      nome: nome,
+      name: name,
       email: email,
       password:password
     };
 
-    db.push(user);
+    this.db.push(user);
     
-    console.log("Db Atualizado",db);
+    console.log("Db Atualizado",this.db);
      
     return user;
   };
 
   public getAllUsers = (): IUser[] => {
-    return db;
+    return this.db;
   };
 }
