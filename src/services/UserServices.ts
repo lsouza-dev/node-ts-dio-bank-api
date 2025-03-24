@@ -34,11 +34,9 @@ export class UserService {
       email: email,
       password:password
     };
-
-    this.db.push(user);
     
-    console.log("Db Atualizado",this.db);
-     
+    this.db.push(user);
+    console.log('Db Atualizado',this.db);
     return user;
   };
 
@@ -47,9 +45,7 @@ export class UserService {
   };
 
   public deleteUser = (email:string):boolean => {
-    console.log('Deletando na service...');
     const findUser = this.db.find(user => user.email === email)
-    console.log('Usuário encontrado:',findUser);
     if(!findUser) return false;
     this.db = this.db.filter(user => user !== findUser)
     return true

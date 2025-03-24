@@ -13,6 +13,8 @@ export class UserController {
     const user = request.body;
 
     if(!user.name) response.status(400).json({message:'Bad Request: Name obrigatório'})
+    if(!user.email) response.status(400).json({message:'Bad Request: Email obrigatório'})
+    if(!user.password) response.status(400).json({message:'Bad Request: Senha obrigatória'})
 
     this.userService.createUser(user.name,user.email,user.password)
     response.status(201).json({ message: "Usuário criado com sucesso" });
@@ -25,9 +27,7 @@ export class UserController {
 
   public deleteUser = (request: Request, response: Response) => {
     const {email} = request.body;
-    console.log(email);
     const usuarioExcluido = this.userService.deleteUser(email)
-    console.log('Usuario excluido:',usuarioExcluido);
     if(usuarioExcluido) response.status(204).send();
     else response.status(404).send({message: 'Usuário não encontrado'})
   }
