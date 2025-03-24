@@ -45,4 +45,13 @@ export class UserService {
   public getAllUsers = (): IUser[] => {
     return this.db;
   };
+
+  public deleteUser = (email:string):boolean => {
+    console.log('Deletando na service...');
+    const findUser = this.db.find(user => user.email === email)
+    console.log('Usuário encontrado:',findUser);
+    if(!findUser) return false;
+    this.db = this.db.filter(user => user !== findUser)
+    return true
+  }
 }
