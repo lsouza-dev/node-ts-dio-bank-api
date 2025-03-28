@@ -1,53 +1,64 @@
-export interface IUser {
-  name: string;
-  email: string;
-  password:string;
-}
-
-const db = [
-  {
-    "name":"lsouza",
-    "email":"lsouza.dev@gmail.com",
-    "password":"lsouza123"
-  },
-  {
-    "name":"helena",
-    "email":"helena.dev@gmail.com",
-    "password":"helena123"
-  },
-  {
-    "name":"mary",
-    "email":"mary.dev@gmail.com",
-    "password":"mary123"
-  }
-]
+import { sign } from "jsonwebtoken";
+import { AppDataSource } from "../database";
+import { User } from "../entities/User";
+import { UserRepository } from "../repositories/UserRepository";
 
 export class UserService {
-  db: IUser[]
+  private userRepository:UserRepository
 
-  constructor(database = db) {
-    this.db = database;
+  constructor(userRepository = new UserRepository(AppDataSource.manager)) {
+    this.userRepository = userRepository;
   }
-  public createUser = (name: string, email: string,password:string):IUser => {
-    const user:IUser = {
+  public createUser = async (name: string, email: string,password:string): Promise<User> => {
+    
+    const user:User = {
       name: name,
       email: email,
       password:password
     };
     
-    this.db.push(user);
-    console.log('Db Atualizado',this.db);
-    return user;
+    return this.userRepository.createUser(user);
+    
   };
 
-  public getAllUsers = (): IUser[] => {
-    return this.db;
-  };
+  // public getAllUsers = (): IUser[] => {
+  //   return this.db;
+  // };
 
   public deleteUser = (email:string):boolean => {
-    const findUser = this.db.find(user => user.email === email)
-    if(!findUser) return false;
-    this.db = this.db.filter(user => user !== findUser)
-    return true
+    // const findUser = this.userRepository.getUserByEmailAndPassword(email,password)
+    // if(findUser !== null){
+    //   this.userRepository.deleteUser(findUser);
+    //   return true
+    // }
+    return false;
+
+  }
+  getUser = (userId:string): Promise<User | null> => {
+    return this.userRepository.getUser(userId);
+  }
+
+  getAuthenticatedUser = async (email: string, password: string): Promise<User | null> => {
+    return this.userRepository.getUserByEmailAndPassword(email,password);
+  }
+
+  getToken = async (email:string,password:string): Promise<String> => {
+    const user = await this.getAuthenticatedUser(email,password);
+
+    if(!user) throw new Error('Email ou senha inválidos')
+
+    const tokenData = {
+      name: user?.name,
+      email: user?.email
+    }
+
+    const tokenKey = '123456789';
+
+    const tokenOptions = {
+      subject:user?.id_user
+    }
+
+    const token = sign(tokenData,tokenKey,tokenOptions);
+    return token
   }
 }

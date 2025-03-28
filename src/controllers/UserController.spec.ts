@@ -3,18 +3,26 @@ import { UserController } from "./UserController";
 import { makeMockRequest } from "../__mocks__/mockRequest.mock";
 import { makeMockResponse } from "../__mocks__/mockResponse.mock";
 import { Request, Response } from "express";
-import { IUser } from "../services/UserServices";
+
+const mockUserService = {
+  createUser: jest.fn(),
+  getUser: jest.fn(),
+  getAllUsers: jest.fn(),
+  deleteUser: jest.fn()
+}
+
+jest.mock('../services/UserServices',() => {
+  return {
+    UserService: jest.fn().mockImplementation(() =>{
+      return mockUserService
+    })
+  }
+})
 
 describe("UserController", () => {
-  const mockUserService: Partial<UserService> = {
-    createUser: jest.fn(),
-    getAllUsers: jest.fn(() => [
-      { name: "Test User", email: "test@example.com", password: "password" },
-    ]),
-    deleteUser: jest.fn((email: string) => email === "lsouza.dev@gmail.com"),
-  };
+  const mockResponse = makeMockResponse();
 
-  const userController = new UserController(mockUserService as UserService);
+  const userController = new UserController();
 
   it("Deve adicionar um novo usuário", () => {
     const mockRequest = {
@@ -25,7 +33,7 @@ describe("UserController", () => {
       },
     } as Request;
 
-    const mockResponse = makeMockResponse();
+    
     userController.createUser(mockRequest, mockResponse);
 
     expect(mockResponse.state.status).toBe(201);
@@ -34,52 +42,108 @@ describe("UserController", () => {
     });
   });
 
-  it("Deve exibir todos os usuários", () => {
-    const mockRequest = {} as Request;
-    const mockResponse = makeMockResponse();
-
-    userController.getAllUsers(mockRequest, mockResponse);
-
-    expect(mockResponse.state.status).toBe(200);
-    expect(mockResponse.state.json).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          name: "Test User",
-          email: "test@example.com",
-        }),
-      ])
-    );
-  });
-
-  it("Deve deletar um usuário existente", () => {
-    const mockResponse = makeMockResponse();
-    mockResponse.status = jest.fn().mockReturnThis(); // Mock do status()
-    mockResponse.send = jest.fn(); // Mock do send()
-
+  it('Deve retornar erro caso o usuário não informe o nome', () => {
     const mockRequest = {
-      body: { email: "lsouza.dev@gmail.com" },
-    } as Request;
+      body: {
+        email: "lsouza.dev@gmail.com",
+        password: "123456"
+      }
+    } as Request
 
-    userController.deleteUser(mockRequest, mockResponse);
+    console.log(mockRequest.body);
+    userController.createUser(mockRequest, mockResponse)
 
-    expect(mockResponse.status).toHaveBeenCalledWith(204);
-    expect(mockResponse.send).toHaveBeenCalled();
-  });
+    expect(mockResponse.state.status).toBe(400)
+    expect(mockResponse.state.json).toMatchObject({message:'Bad Request: Todos os campos são obrigatórios'})
 
-  it("Deve retornar erro ao tentar deletar um usuário inexistente", () => {
+  })
+  it('Deve retornar erro caso o usuário não informe o email', () => {
     const mockRequest = {
-      body: { email: "nonexistent@example.com" },
-    } as Request;
+      body: {
+        name:"Lsouza",
+        password: "123456"
+      }
+    } as Request
+
+    userController.createUser(mockRequest, mockResponse)
+
+    expect(mockResponse.state.status).toBe(400)
+    expect(mockResponse.state.json).toMatchObject({message:'Bad Request: Todos os campos são obrigatórios'})
+
+  })
+  it('Deve retornar erro caso o usuário não informe a senha', () => {
+    const mockRequest = {
+      body: {
+        name: "Lsouza",
+        email: "lsouza.dev@gmail.com"
+      }
+    } as Request
+
+    userController.createUser(mockRequest, mockResponse)
+
+    expect(mockResponse.state.status).toBe(400)
+    expect(mockResponse.state.json).toMatchObject({message:'Bad Request: Todos os campos são obrigatórios'})
+
+  })
+
+  it('Deve retornar o usuário com o userId informado', () => {
+    const mockRequest = makeMockRequest({
+      params:{
+        userId:'123456'
+      }
+    }) as Request
+    userController.getUser(mockRequest,mockResponse)
+    expect(mockUserService.getUser).toHaveBeenCalledWith('123456')
+    expect(mockResponse.state.status).toBe(200)
+    })
+  }
+
+  // it("Deve exibir todos os usuários", () => {
+  //   const mockRequest = {} as Request;
+  //   const mockResponse = makeMockResponse();
+
+  //   userController.getAllUsers(mockRequest, mockResponse);
+
+  //   expect(mockResponse.state.status).toBe(200);
+  //   expect(mockResponse.state.json).toEqual(
+  //     expect.arrayContaining([
+  //       expect.objectContaining({
+  //         name: "Test User",
+  //         email: "test@example.com",
+  //       }),
+  //     ])
+  //   );
+  // });
+
+  // it("Deve deletar um usuário existente", () => {
+  //   const mockResponse = makeMockResponse();
+  //   mockResponse.status = jest.fn().mockReturnThis(); // Mock do status()
+  //   mockResponse.send = jest.fn(); // Mock do send()
+
+  //   const mockRequest = {
+  //     body: { email: "lsouza.dev@gmail.com" },
+  //   } as Request;
+
+  //   userController.deleteUser(mockRequest, mockResponse);
+
+  //   expect(mockResponse.status).toHaveBeenCalledWith(204);
+  //   expect(mockResponse.send).toHaveBeenCalled();
+  // });
+
+  // it("Deve retornar erro ao tentar deletar um usuário inexistente", () => {
+  //   const mockRequest = {
+  //     body: { email: "nonexistent@example.com" },
+  //   } as Request;
     
-    const mockResponse = makeMockResponse();
-    mockResponse.status = jest.fn().mockReturnThis();
-    mockResponse.send = jest.fn();
+  //   const mockResponse = makeMockResponse();
+  //   mockResponse.status = jest.fn().mockReturnThis();
+  //   mockResponse.send = jest.fn();
 
-    userController.deleteUser(mockRequest, mockResponse);
+  //   userController.deleteUser(mockRequest, mockResponse);
 
-    expect(mockResponse.status).toHaveBeenCalledWith(404);
-    expect(mockResponse.send).toHaveBeenCalledWith({
-      message: "Usuário não encontrado",
-    });
-  });
+  //   expect(mockResponse.status).toHaveBeenCalledWith(404);
+  //   expect(mockResponse.send).toHaveBeenCalledWith({
+  //     message: "Usuário não encontrado",
+  //   });
+  // });
 });

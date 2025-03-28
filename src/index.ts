@@ -2,9 +2,11 @@ import express, { Request, Response, Router } from "express";
 import { UserController } from "./controllers/UserController";
 import { UserService } from "./services/UserServices";
 import { router } from "./routes";
-
+import 'reflect-metadata'
+import { AppDataSource } from "./database";
 
 const server = express();
+
 server.use(express.json());
 server.use(router)
 
